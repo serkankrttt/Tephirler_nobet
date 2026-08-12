@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nöbetçi Takip</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; color: #333; }
+        .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; font-size: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { text-align: center; color: #7f8c8d; font-size: 16px; margin: -5px 0 15px 0; }
+        .box { background: #34495e; color: #fff; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
+        .nobetci-isim { font-size: 32px; font-weight: bold; color: #f1c40f; display: block; margin: 10px 0; }
+        .next-box { background: #ecf0f1; padding: 10px; border-radius: 8px; border: 2px dashed #95a5a6; text-align: center; font-size: 14px; margin-bottom: 20px; }
+        button { border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-bottom: 10px; transition: 0.3s; }
+        .btn-gelmedi { background: #e74c3c; color: white; }
+        .btn-tamam { background: #27ae60; color: white; }
+        .history-list { list-style: none; padding: 0; }
+        .history-item { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .badge { padding: 4px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
+    </style>
+    
+    <!-- Firebase Klasik Bağlantı Kütüphaneleri (Spck Editor Uyumlu) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>ANKARA ŞEKER FABRİKASI</h1>
+    <h2>HAMFABRİKA TEPHİRLER NÖBET LİSTESİ</h2>
+
+    <div class="box">
+        <div style="font-size: 14px; opacity: 0.8;">Şu Anki Nöbetçi:</div>
+        <span id="bugunKisi" class="nobetci-isim">Yükleniyor...</span>
+        <div id="durumBilgi" style="font-size: 12px; color: #bdc3c7;">Bağlantı kuruluyor...</div>
+    </div>
+
+    <div class="next-box">
+        Bir sonraki nöbetçi: <b><span id="sonrakiKisi">...</span></b>
+    </div>
+
+    <button class="btn-gelmedi" onclick="gelmediIsaretle()">❌ GELMEDİ (Sıradakine Geç)</button>
+    <button class="btn-tamam" onclick="tamamlandiIsaretle()">✅ NÖBETİ TAMAMLA</button>
+
+    <h3 style="font-size: 16px; border-left: 4px solid #3498db; padding-left: 10px;">Geçmiş İşlemler</h3>
+    <ul id="gecmisListesi" class="history-list"></ul>
+</div>
+
+<script>
+    // 1. Firebase Ayarları
+    const firebaseConfig = {
+        apiKey: "AIzaSyCx5Nq4PxLi_STqsUzQkKGLqnriLBkpZeA",
+        authDomain: "tephirlernobet.firebaseapp.com",
+        databaseURL: "https://tephirlernobet-default-rtdb.firebaseio.com",
+        projectId: "tephirlernobet",
+        storageBucket: "tephirlernobet.firebasestorage.app",
+        messagingSenderId: "975828220326",
+        appId: "1:975828220326:web:04e3353e9e002203ccf767"
+    };
+
+    // 2. Firebase'i Başlat
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const nobetRef = db.ref('nobetSistemi/guncelData');
+
+    const anaListe = ["SERKAN", "TURAN", "MEVLÜT", "OSMAN", "AHMET", "ERTUĞRUL", "SİRAÇ"];
+
+    // Varsayılan Veri
+    let veri = {
+        currentIndex: 0,
+        gelmeyenler: [],
+        gecmis: [],
+        aktifIsim: "SERKAN",
+        aktifTip: "normal"
+    };
+
+    // 3. Ekranı Güncelleme
+    function ekraniGuncelle() {
+        document.getElementById("bugunKisi").textContent = veri.aktifIsim;
+        
+        // Bir sonraki kişiyi doğru hesaplama
+        let sonraki = "";
+        if (veri.aktifTip === "normal") {
+            sonraki = (veri.gelmeyenler && veri.gelmeyenler.length > 0) ? veri.gelmeyenler[0] : anaListe[(veri.currentIndex + 1) % anaListe.length];
+        } else {
+            // Eğer şu anki telafi yapan kişiyse, bir sonraki kişi normal listeden sıradaki olur (başka borçlu yoksa)
+            sonraki = (veri.gelmeyenler && veri.gelmeyenler.length > 1) ? veri.gelmeyenler[1] : anaListe[veri.currentIndex];
+        }
+        document.getElementById("sonrakiKisi").textContent = sonraki;
+
+        document.getElementById("durumBilgi").innerHTML = (veri.aktifTip === "telafi") ? "⚠️ Önceki nöbetinden kalan hak (Öncelikli)!" : "Normal sıra.";
+
+        const listeEl = document.getElementById("gecmisListesi");
+        listeEl.innerHTML = "";
+        
+        if(veri.gecmis && veri.gecmis.length > 0) {
+            veri.gecmis.slice(-6).reverse().forEach(item => {
+                let li = document.createElement("li");
+                li.className = "history-item";
+                li.innerHTML = `<span>${item.isim} <br><small style="color:#999">${item.tarih}</small></span> <span class="badge" style="background:${item.durum=='Gelmedi'?'#e74c3c':'#27ae60'}; color:white">${item.durum}</span>`;
+                listeEl.appendChild(li);
+            });
+        }
+    }
+
+    // 4. Veritabanını Dinle (Canlı Senkronizasyon)
+    nobetRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            veri = data;
+            if(!veri.gelmeyenler) veri.gelmeyenler = [];
+            if(!veri.gecmis) veri.gecmis = [];
+        } else {
+            // İlk kez açılıyorsa veritabanına varsayılanı yaz
+            nobetRef.set(veri);
+        }
+        ekraniGuncelle();
+    });
+
+    // 5. GELMEDİ BUTONU
+    function gelmediIsaretle() {
+        const tarihSaat = new Date().toLocaleDateString('tr-TR') + " " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+        veri.gecmis.push({ tarih: tarihSaat, isim: veri.aktifIsim, durum: "Gelmedi" });
+        
+        if (veri.aktifTip === "normal") {
+            veri.gelmeyenler.push(veri.aktifIsim); // Borçlulara ekle
+        } else {
+            // Telafi sırasındayken de gelmediyse, onu sona atalım tekrar sormasın
+            let yineGelmeyen = veri.gelmeyenler.shift();
+            veri.gelmeyenler.push(yineGelmeyen);
+        }
+
+        // Bugünü kurtarmak için ANINDA sıradaki NORMAL kişiye geç!
+        veri.currentIndex = (veri.currentIndex + 1) % anaListe.length;
+        veri.aktifIsim = anaListe[veri.currentIndex];
+        veri.aktifTip = "normal";
+        
+        // Veritabanına kaydet
+        nobetRef.set(veri);
+    }
+
+    // 6. TAMAMLANDI BUTONU
+    function tamamlandiIsaretle() {
+        const tarihSaat = new Date().toLocaleDateString('tr-TR') + " " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+        veri.gecmis.push({ tarih: tarihSaat, isim: veri.aktifIsim, durum: "Tamamlandı" });
+        
+        if (veri.aktifTip === "telafi") {
+            veri.gelmeyenler.shift(); // Borcunu ödedi, listeden sil
+        } else {
+            veri.currentIndex = (veri.currentIndex + 1) % anaListe.length; // Normal sırayı ilerlet
+        }
+        
+        // Bir sonraki nöbetçiyi belirle
+        if (veri.gelmeyenler.length > 0) {
+            veri.aktifIsim = veri.gelmeyenler[0];
+            veri.aktifTip = "telafi";
+        } else {
+            veri.aktifIsim = anaListe[veri.currentIndex];
+            veri.aktifTip = "normal";
+        }
+        
+        // Veritabanına kaydet
+        nobetRef.set(veri);
+    }
+</script>
+
+</body>
+</html>
