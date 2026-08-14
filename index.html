@@ -1,360 +1,358 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tephirler Nöbet Sistemi</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
-        
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
-            margin: 0; 
-            padding: 15px; 
-            color: #2c3e50; 
-            min-height: 100vh;
-        }
-        .container { 
-            max-width: 450px; 
-            margin: 0 auto; 
-            background: rgba(255, 255, 255, 0.95); 
-            padding: 25px 20px; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
-            backdrop-filter: blur(10px);
-        }
-        h1 { text-align: center; color: #1a252f; font-size: 22px; font-weight: 800; margin-bottom: 5px; }
-        h2 { text-align: center; color: #3498db; font-size: 14px; font-weight: 600; margin-top: 0; margin-bottom: 20px; letter-spacing: 1px;}
-        
-        .saat-kapsayici { text-align: center; margin-bottom: 20px; }
-        .canli-saat { background: #fff; color: #2c3e50; padding: 8px 20px; border-radius: 25px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: inline-block; border: 1px solid #eee;}
-        
-        .haftasonu-uyari { display: none; background: #e74c3c; color: white; text-align: center; padding: 10px; border-radius: 10px; font-size: 14px; font-weight: bold; margin-bottom: 15px; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-
-        .box { 
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); 
-            color: #fff; 
-            padding: 25px 20px; 
-            border-radius: 20px; 
-            text-align: center; 
-            margin-bottom: 15px; 
-            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
-        }
-        .nobetci-isim { font-size: 38px; font-weight: 800; color: #f1c40f; display: block; margin: 5px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-        .durum-etiketi { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 10px; display: inline-block; margin-top: 5px;}
-        
-        .next-box { background: #fff; padding: 15px; border-radius: 15px; border-left: 5px solid #e67e22; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; font-size: 15px; margin-bottom: 20px; }
-        .next-box b { color: #e67e22; font-size: 18px; }
-
-        .btn-grup { display: flex; gap: 10px; margin-bottom: 25px; }
-        button { 
-            flex: 1; border: none; padding: 15px 10px; border-radius: 15px; cursor: pointer; 
-            font-size: 14px; font-weight: 800; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); font-family: 'Poppins', sans-serif;
-        }
-        button:active { transform: scale(0.95); }
-        .btn-gelmedi { background: #ffeaa7; color: #d63031; border: 2px solid #ff7675; }
-        .btn-tamam { background: #55efc4; color: #00b894; border: 2px solid #00cec9; font-size: 15px;}
-        .bildirim-btn { width: 100%; background: #dfe6e9; color: #2d3436; margin-bottom: 20px; border: 1px dashed #b2bec3; box-shadow: none;}
-
-        .section-title { font-size: 15px; font-weight: 800; color: #2c3e50; margin-bottom: 10px; border-bottom: 2px solid #bdc3c7; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;}
-        
-        /* 10 Günlük Liste Tasarımı */
-        .forecast-list { list-style: none; padding: 0; margin: 0 0 25px 0; }
-        .forecast-item { background: #f8f9fa; padding: 10px 15px; border-radius: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; border-left: 4px solid #3498db;}
-        .forecast-item span { color: #7f8c8d; font-size: 12px; }
-        .forecast-telafi { border-left-color: #e67e22; background: #fff3e0; }
-
-        .history-list { list-style: none; padding: 0; margin: 0; }
-        .history-item { background: #fff; padding: 10px 15px; border-radius: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; border-left: 4px solid #bdc3c7; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
-        .history-item small { color: #95a5a6; font-size: 11px; font-weight: 400; display: block; margin-top: 3px;}
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase;}
-        
-        .btn-temizle { background: none; border: none; color: #e74c3c; font-size: 12px; cursor: pointer; font-weight: 800; padding: 0; box-shadow: none; flex: none; width: auto;}
-    </style>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#182433">
+<title>Tephirler Nöbet Sistemi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+*{box-sizing:border-box}
+:root{--navy:#172433;--blue:#258bd8;--cyan:#1cc8b7;--green:#20b26b;--orange:#ef8b2c;--red:#e74c3c;--bg:#edf2f7;--muted:#748196}
+body{margin:0;font-family:Poppins,sans-serif;background:linear-gradient(135deg,#eaf0f6,#d9e3ee);color:var(--navy);min-height:100vh}
+.app{width:min(100%,520px);margin:auto;padding:14px 12px 24px}
+.header{display:flex;align-items:center;justify-content:space-between;margin:2px 2px 12px}
+.brand h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.2px}
+.brand p{font-size:11px;color:var(--blue);font-weight:700;margin:2px 0 0}
+.clock{font-size:11px;background:white;padding:7px 10px;border-radius:13px;box-shadow:0 3px 12px #17243312;font-weight:600}
+.weekend{display:none;background:#e74c3c;color:#fff;padding:10px;border-radius:14px;text-align:center;font-size:12px;font-weight:700;margin-bottom:10px}
+.slider-wrap{position:relative}
+.slider{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;gap:12px;padding:3px 1px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.slider::-webkit-scrollbar{display:none}
+.page{flex:0 0 100%;scroll-snap-align:center;background:rgba(255,255,255,.96);border-radius:24px;padding:18px;box-shadow:0 12px 30px #17243318;min-height:570px}
+.page-title{font-size:18px;font-weight:800;margin:0 0 3px}
+.page-sub{font-size:11px;color:var(--muted);margin-bottom:16px}
+.hero{background:linear-gradient(135deg,#172433,#258bd8);color:#fff;border-radius:21px;padding:21px;text-align:center;box-shadow:0 9px 22px #258bd833}
+.hero .label{font-size:11px;font-weight:700;opacity:.85}
+.hero .name{font-size:34px;font-weight:800;color:#ffd84a;margin:5px 0}
+.badge{display:inline-block;padding:5px 10px;border-radius:20px;background:#ffffff24;font-size:10px;font-weight:700}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.stat{background:#f6f8fb;border-radius:15px;padding:11px}
+.stat small{display:block;color:var(--muted);font-size:10px}
+.stat strong{display:block;font-size:14px;margin-top:3px}
+.stat.full{grid-column:1/-1}
+.next{margin-top:12px;border-left:5px solid var(--orange);background:#fff7ec;border-radius:14px;padding:12px;text-align:center;font-size:12px}
+.next b{font-size:17px;color:var(--orange)}
+.action-row{display:flex;gap:8px;margin-top:12px}
+button{font-family:inherit;border:0;border-radius:14px;padding:12px;cursor:pointer;font-weight:800}
+.action-row button{flex:1}
+.btn-no{background:#ffe9e5;color:#c0392b}
+.btn-ok{background:#dcf8eb;color:#10945a}
+.mini-btn{width:100%;background:#eef2f5;color:#34495e;margin-top:10px}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin:14px 0 9px}
+.section-head h3{font-size:13px;margin:0}
+.table{background:#f7f9fb;border-radius:15px;overflow:hidden}
+.row{display:grid;grid-template-columns:1.3fr .55fr .75fr .65fr .6fr;gap:3px;padding:9px 7px;font-size:9px;align-items:center}
+.row.head{font-weight:800;background:#e8eef4;color:#506075}
+.row:not(.head){border-top:1px solid #e3e8ee;font-weight:600}
+.person-dot{display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--blue);display:inline-block}
+.chart{margin-top:12px}
+.bar-row{display:grid;grid-template-columns:70px 1fr 22px;align-items:center;gap:7px;font-size:10px;margin:8px 0}
+.bar-bg{height:10px;background:#e8edf2;border-radius:10px;overflow:hidden}
+.bar{height:100%;background:linear-gradient(90deg,#258bd8,#1cc8b7);border-radius:10px}
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.day-head{font-size:8px;text-align:center;color:#7d8998;font-weight:800;padding:3px}
+.day{min-height:66px;background:#f6f8fa;border-radius:9px;padding:5px;font-size:8px;cursor:pointer;border:1px solid transparent}
+.day.today{border:2px solid var(--blue)}
+.day .num{font-weight:800;font-size:10px}
+.day .person{margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#dfeeff;border-radius:5px;padding:2px 3px;font-weight:700}
+.day .person.telafi{background:#fff0dc;color:#c76a12}
+.day.weekend-day{opacity:.45}
+.legend{display:flex;gap:10px;font-size:9px;margin:10px 0}
+.legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:3px;margin-right:4px;background:#dfeeff}
+.legend .l-telafi::before{background:#fff0dc}
+.empty{text-align:center;color:#8995a4;font-size:11px;padding:30px 5px}
+.dots{display:flex;justify-content:center;gap:6px;margin:0 0 8px}
+.dot-nav{width:7px;height:7px;border-radius:50%;background:#b8c2ce;transition:.2s}
+.dot-nav.active{width:20px;border-radius:8px;background:var(--blue)}
+.bottom-hint{text-align:center;color:#8490a0;font-size:9px;margin-top:2px}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(30px);opacity:0;background:#172433;color:#fff;padding:10px 15px;border-radius:14px;font-size:11px;z-index:20;transition:.25s;pointer-events:none;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:380px){.page{padding:14px;min-height:555px}.row{font-size:8px}.hero .name{font-size:30px}}
+</style>
 </head>
 <body>
+<div class="app">
+  <div class="header">
+    <div class="brand"><h1>ANKARA ŞEKER FABRİKASI</h1><p>TEPHİRLER NÖBET SİSTEMİ</p></div>
+    <div id="clock" class="clock">--:--</div>
+  </div>
+  <div id="weekend" class="weekend">Sistem Kapalı: Hafta Sonu Nöbet Yoktur.</div>
 
-<div class="container">
-    <h1>ANKARA ŞEKER FABRİKASI</h1>
-    <h2>TEPHİRLER NÖBET LİSTESİ</h2>
+  <div id="slider" class="slider">
+    <!-- 1: ANA SAYFA / KİŞİSEL ÖZET -->
+    <section class="page">
+      <h2 class="page-title">👤 Kişisel Özet</h2>
+      <div class="page-sub">Günün nöbeti ve durumlar</div>
+      <div class="hero">
+        <div class="label">BUGÜNÜN NÖBETÇİSİ</div>
+        <div id="todayName" class="name">...</div>
+        <span id="todayType" class="badge">Bağlanıyor...</span>
+      </div>
+      <div class="stats-grid">
+        <div class="stat"><small>⏱ Nöbet başlangıcı</small><strong>08:00</strong></div>
+        <div class="stat"><small>⏳ Kalan süre</small><strong id="remaining">--:--</strong></div>
+        <div class="stat"><small>📅 Sonraki nöbet</small><strong id="myNext">--</strong></div>
+        <div class="stat"><small>📊 Bu ay nöbet</small><strong id="myCount">0</strong></div>
+        <div class="stat"><small>❌ Gelmedi</small><strong id="myAbsent">0</strong></div>
+        <div class="stat"><small>✅ Tamamlandı</small><strong id="myDone">0</strong></div>
+      </div>
+      <div class="next">Yarınki nöbetçi<br><b id="tomorrow">...</b></div>
+      <div class="action-row" id="actions">
+        <button class="btn-no" onclick="gelmediIsaretle()">❌ GELMEDİ</button>
+        <button class="btn-ok" onclick="tamamlandiIsaretle()">✅ TAMAMLANDI</button>
+      </div>
+      <button class="mini-btn" id="notifyBtn" onclick="bildirimIzinIste()">🔔 Bildirimleri Aç</button>
+    </section>
 
-    <div class="saat-kapsayici">
-        <span id="saatTarih" class="canli-saat">Yükleniyor...</span>
-    </div>
+    <!-- 2: İSTATİSTİK -->
+    <section class="page">
+      <h2 class="page-title">📊 İstatistik</h2>
+      <div class="page-sub" id="statsMonth">Aylık nöbet performansı</div>
+      <div class="table">
+        <div class="row head"><span>Personel</span><span>Nöbet</span><span>Tamam.</span><span>Gelmedi</span><span>Telafi</span></div>
+        <div id="statsRows"></div>
+      </div>
+      <div class="section-head"><h3>Nöbet Dağılımı</h3><span id="totalDuty" style="font-size:10px;color:#7d8998"></span></div>
+      <div id="chart" class="chart"></div>
+      <div class="section-head"><h3>Durum Özeti</h3></div>
+      <div class="stats-grid">
+        <div class="stat"><small>Toplam tamamlanan</small><strong id="totalDone">0</strong></div>
+        <div class="stat"><small>Toplam gelmeyen</small><strong id="totalAbsent">0</strong></div>
+        <div class="stat full"><small>Telafi bekleyen toplam hak</small><strong id="totalComp">0</strong></div>
+      </div>
+    </section>
 
-    <!-- Hafta Sonu Uyarısı -->
-    <div id="haftaSonuUyari" class="haftasonu-uyari">
-        Sistem Kapalı: Hafta Sonu Nöbet Yoktur.
-    </div>
+    <!-- 3: TAKVİM -->
+    <section class="page">
+      <h2 class="page-title">📅 Takvim</h2>
+      <div class="page-sub" id="calendarTitle">Aylık nöbet planı</div>
+      <div class="legend"><span>Normal nöbet</span><span class="l-telafi">Telafi nöbeti</span></div>
+      <div class="calendar" id="calendar"></div>
+      <div id="dayDetail" class="next" style="display:none"></div>
+      <div class="bottom-hint">Bir güne dokunarak detayını görebilirsin.</div>
+    </section>
+  </div>
 
-    <button class="bildirim-btn" id="bildirimIzinBtn" onclick="bildirimIzinIste()">🔔 Bildirimleri Aç (Sabah Uyarıları İçin)</button>
-
-    <div class="box">
-        <div style="font-size: 13px; opacity: 0.9; font-weight: 600;">ŞU ANKİ NÖBETÇİ</div>
-        <span id="bugunKisi" class="nobetci-isim">...</span>
-        <div id="durumBilgi" class="durum-etiketi">Bağlanıyor...</div>
-    </div>
-
-    <div class="next-box">
-        Bir Sonraki Nöbetçi: <b><span id="sonrakiKisi">...</span></b>
-    </div>
-
-    <div class="btn-grup" id="butonGrubu">
-        <button class="btn-gelmedi" onclick="gelmediIsaretle()">❌ GELMEDİ</button>
-        <button class="btn-tamam" onclick="tamamlandiIsaretle()">✅ TAMAMLANDI</button>
-    </div>
-
-    <!-- 10 Günlük Tahmin -->
-    <div class="section-title">Gelecek 10 İş Günü Planı</div>
-    <ul id="onGunlukListe" class="forecast-list"></ul>
-
-    <!-- Son İşlemler ve Şifreli Temizleme Butonu -->
-    <div class="section-title">
-        <span>Son İşlemler</span>
-        <button class="btn-temizle" onclick="gecmisiTemizle()">🗑️ Temizle</button>
-    </div>
-    <ul id="gecmisListesi" class="history-list"></ul>
+  <div class="dots" id="dots">
+    <!-- Sayfa sayısı 3'e düştüğü için noktaları da 3 yaptık -->
+    <span class="dot-nav active"></span><span class="dot-nav"></span><span class="dot-nav"></span>
+  </div>
+  <div class="bottom-hint">← Kaydırarak bölümler arasında geç →</div>
 </div>
+<div id="toast" class="toast"></div>
 
 <script>
-    let sabahBildirimiAtildi = false;
+const firebaseConfig = {
+  apiKey: "AIzaSyCx5Nq4PxLi_STqsUzQkKGLqnriLBkpZeA",
+  authDomain: "tephirlernobet.firebaseapp.com",
+  databaseURL: "https://tephirlernobet-default-rtdb.firebaseio.com",
+  projectId: "tephirlernobet"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const nobetRef = db.ref('nobetSistemi/guncelData');
 
-    // --- Canlı Saat ve Hafta Sonu Kontrolü ---
-    function saatiGuncelle() {
-        const simdi = new Date();
-        const ayarlar = { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit' };
-        document.getElementById("saatTarih").textContent = simdi.toLocaleDateString('tr-TR', ayarlar);
+const anaListe = ["SERKAN", "TURAN", "MEVLÜT", "OSMAN", "AHMET", "ERTUĞRUL", "SİRAÇ"];
+const CURRENT_USER = "SERKAN";
+let veri = {
+  currentIndex: 0, gelmeyenler: [], gecmis: [],
+  aktifIsim: "SERKAN", aktifTip: "normal", sonIslemMesaji: ""
+};
+let ilkYukleme = true;
 
-        const gun = simdi.getDay();
-        const saat = simdi.getHours();
-        const dakika = simdi.getMinutes();
+function now() { return new Date(); }
+function trDate(d) { return d.toLocaleDateString('tr-TR'); }
+function monthKey(d) { return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0"); }
+function showToast(msg) {
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(window.toastTimer); window.toastTimer=setTimeout(()=>t.classList.remove("show"),2600);
+}
+function formatRemaining() {
+  const n=now(), end=new Date(n); end.setDate(end.getDate()+1); end.setHours(8,0,0,0);
+  if(n.getHours()<8) return "24:00";
+  let sec=Math.max(0,Math.floor((end-n)/1000));
+  return String(Math.floor(sec/3600)).padStart(2,"0")+":"+String(Math.floor(sec%3600/60)).padStart(2,"0");
+}
+function updateClock() {
+  const d=now();
+  document.getElementById("clock").textContent=d.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  document.getElementById("remaining").textContent=formatRemaining();
+  const weekend=d.getDay()===0||d.getDay()===6;
+  document.getElementById("weekend").style.display=weekend?"block":"none";
+  document.getElementById("actions").style.display=weekend?"none":"flex";
+}
+setInterval(updateClock,1000); updateClock();
 
-        if (gun === 0 || gun === 6) {
-            document.getElementById("haftaSonuUyari").style.display = "block";
-            document.getElementById("butonGrubu").style.display = "none";
-        } else {
-            document.getElementById("haftaSonuUyari").style.display = "none";
-            document.getElementById("butonGrubu").style.display = "flex";
-            
-            if (saat === 8 && dakika === 0 && !sabahBildirimiAtildi && veri.aktifIsim !== "SERKAN") {
-                bildirimGonder("Günün Nöbetçisi: " + veri.aktifIsim);
-                sabahBildirimiAtildi = true;
-            }
-            if (saat === 8 && dakika > 0) { sabahBildirimiAtildi = false; }
-        }
+function bildirimIzinIste() {
+  if(!("Notification" in window)) return showToast("Bu tarayıcı bildirimleri desteklemiyor.");
+  Notification.requestPermission().then(p=>{
+    if(p==="granted") {
+      document.getElementById("notifyBtn").style.display="none";
+      new Notification("Tephirler Nöbet",{body:"Bildirimler başarıyla açıldı."});
     }
-    setInterval(saatiGuncelle, 1000);
+  });
+}
+if("Notification" in window && Notification.permission==="granted") document.getElementById("notifyBtn").style.display="none";
+function bildirimGonder(msg) { if("Notification" in window && Notification.permission==="granted") new Notification("Tephirler Nöbet",{body:msg}); }
 
-    // --- Bildirim Sistemi ---
-    function bildirimIzinIste() {
-        if (!("Notification" in window)) return;
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                document.getElementById("bildirimIzinBtn").style.display = "none";
-                new Notification("Sistem Aktif", { body: "Nöbet bildirimleri başarıyla açıldı!" });
-            }
-        });
+function eventMonth(item) {
+  if(!item || !item.tarih) return "";
+  const p=item.tarih.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  return p ? p[3]+"-"+String(p[2]).padStart(2,"0") : "";
+}
+function monthStats() {
+  const key=monthKey(now());
+  const stats={};
+  anaListe.forEach(n=>stats[n]={duty:0,done:0,absent:0,comp:0});
+  (veri.gecmis||[]).forEach(x=>{
+    if(eventMonth(x)!==key || !stats[x.isim]) return;
+    if(x.durum==="Tamamlandı") stats[x.isim].done++;
+    if(x.durum==="Gelmedi") stats[x.isim].absent++;
+  });
+  Object.keys(stats).forEach(n=>stats[n].duty=stats[n].done+stats[n].absent);
+  (veri.gelmeyenler||[]).forEach(n=>{if(stats[n])stats[n].comp++;});
+  return stats;
+}
+
+function nextOccurrenceFor(name) {
+  const d=new Date(); let idx=anaListe.indexOf(veri.aktifIsim);
+  let tempQueue=[...(veri.gelmeyenler||[])];
+  for(let i=0;i<60;i++) {
+    d.setDate(d.getDate()+1);
+    if(d.getDay()===0||d.getDay()===6) continue;
+    let candidate;
+    if(tempQueue.length) candidate=tempQueue.shift();
+    else { idx=(idx+1)%anaListe.length; candidate=anaListe[idx]; }
+    if(candidate===name) return d;
+  }
+  return null;
+}
+
+function updatePersonal() {
+  document.getElementById("todayName").textContent=veri.aktifIsim;
+  document.getElementById("todayType").textContent=veri.aktifTip==="telafi"?"⚠️ TELAFİ NÖBETİ":"🟢 NORMAL NÖBET";
+  const ns=nextOccurrenceFor(CURRENT_USER);
+  document.getElementById("myNext").textContent=ns?ns.toLocaleDateString("tr-TR",{day:"numeric",month:"long"}):"--";
+  const stats=monthStats()[CURRENT_USER]||{duty:0,done:0,absent:0,comp:0};
+  document.getElementById("myCount").textContent=stats.duty;
+  document.getElementById("myAbsent").textContent=stats.absent;
+  document.getElementById("myDone").textContent=stats.done;
+  const tomorrow=nextOccurrenceFor(anaListe[(anaListe.indexOf(veri.aktifIsim)+1)%anaListe.length]);
+  document.getElementById("tomorrow").textContent=anaListe[(anaListe.indexOf(veri.aktifIsim)+1)%anaListe.length];
+}
+
+function renderStats() {
+  const stats=monthStats(), rows=document.getElementById("statsRows"), chart=document.getElementById("chart");
+  rows.innerHTML=""; chart.innerHTML="";
+  const names=anaListe;
+  let totalDuty=0,totalDone=0,totalAbsent=0,totalComp=0;
+  names.forEach(n=>{
+    const s=stats[n]; totalDuty+=s.duty; totalDone+=s.done; totalAbsent+=s.absent; totalComp+=s.comp;
+    rows.insertAdjacentHTML("beforeend",`<div class="row"><span class="person-dot"><i class="dot"></i>${n}</span><span>${s.duty}</span><span>${s.done}</span><span>${s.absent}</span><span>${s.comp}</span></div>`);
+  });
+  const max=Math.max(1,...names.map(n=>stats[n].duty));
+  names.forEach(n=>{
+    const s=stats[n];
+    chart.insertAdjacentHTML("beforeend",`<div class="bar-row"><span>${n}</span><div class="bar-bg"><div class="bar" style="width:${s.duty/max*100}%"></div></div><b>${s.duty}</b></div>`);
+  });
+  document.getElementById("statsMonth").textContent=now().toLocaleDateString("tr-TR",{month:"long",year:"numeric"})+" performansı";
+  document.getElementById("totalDuty").textContent="Toplam: "+totalDuty;
+  document.getElementById("totalDone").textContent=totalDone;
+  document.getElementById("totalAbsent").textContent=totalAbsent;
+  document.getElementById("totalComp").textContent=totalComp;
+}
+
+function buildCalendar() {
+  const d=now(), y=d.getFullYear(), m=d.getMonth(), first=new Date(y,m,1), days=new Date(y,m+1,0).getDate();
+  const cal=document.getElementById("calendar"); cal.innerHTML="";
+  ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"].forEach(x=>cal.insertAdjacentHTML("beforeend",`<div class="day-head">${x}</div>`));
+  let start=(first.getDay()+6)%7;
+  for(let i=0;i<start;i++) cal.insertAdjacentHTML("beforeend","<div></div>");
+  let idx=anaListe.indexOf(veri.aktifIsim);
+  let q=[...(veri.gelmeyenler||[])];
+  for(let day=1;day<=days;day++) {
+    const date=new Date(y,m,day), weekend=date.getDay()===0||date.getDay()===6;
+    const today=day===d.getDate();
+    let person="";
+    let telafi=false;
+    if(!weekend) {
+      if(day===d.getDate()) { person=veri.aktifIsim; telafi=veri.aktifTip==="telafi"; }
+      else if(date>d) {
+        if(q.length) { person=q.shift(); telafi=true; }
+        else { idx=(idx+1)%anaListe.length; person=anaListe[idx]; }
+      }
     }
-    if ("Notification" in window && Notification.permission === "granted") {
-        document.getElementById("bildirimIzinBtn").style.display = "none";
-    }
-    function bildirimGonder(mesaj) {
-        if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("Tephirler Nöbet", { body: mesaj });
-        }
-    }
+    const id="day"+day;
+    cal.insertAdjacentHTML("beforeend",`<div id="${id}" class="day ${today?"today ":""}${weekend?"weekend-day":""}" onclick="showDay(${day},'${person}',${telafi})">
+      <div class="num">${day}</div>${person?`<div class="person ${telafi?"telafi":""}">${person}${telafi?" 🟠":""}</div>`:""}
+    </div>`);
+  }
+  document.getElementById("calendarTitle").textContent=d.toLocaleDateString("tr-TR",{month:"long",year:"numeric"}).toUpperCase();
+}
+function showDay(day,person,telafi) {
+  const d=new Date(now().getFullYear(),now().getMonth(),day);
+  const box=document.getElementById("dayDetail");
+  box.style.display="block";
+  box.innerHTML=`📅 <b>${d.toLocaleDateString("tr-TR",{day:"numeric",month:"long",weekday:"long"})}</b><br>👤 Nöbetçi: <b>${person||"Nöbet yok"}</b><br>🕐 08:00–08:00<br>🟠 Durum: <b>${telafi?"Telafi":"Planlandı"}</b>`;
+}
 
-    // --- Firebase Ayarları ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyCx5Nq4PxLi_STqsUzQkKGLqnriLBkpZeA",
-        authDomain: "tephirlernobet.firebaseapp.com",
-        databaseURL: "https://tephirlernobet-default-rtdb.firebaseio.com",
-        projectId: "tephirlernobet"
-    };
+function ekraniGuncelle() {
+  updatePersonal(); renderStats(); buildCalendar();
+}
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const nobetRef = db.ref('nobetSistemi/guncelData');
+nobetRef.on("value",snapshot=>{
+  const data=snapshot.val();
+  if(data) {
+    veri=data;
+    if(!veri.gelmeyenler) veri.gelmeyenler=[];
+    if(!veri.gecmis) veri.gecmis=[];
+    if(!ilkYukleme && veri.sonIslemMesaji) bildirimGonder(veri.sonIslemMesaji);
+  } else nobetRef.set(veri);
+  ekraniGuncelle(); ilkYukleme=false;
+});
 
-    const anaListe = ["SERKAN", "TURAN", "MEVLÜT", "OSMAN", "AHMET", "ERTUĞRUL", "SİRAÇ"];
+window.gelmediIsaretle=function(){
+  if([0,6].includes(now().getDay())) return showToast("Hafta sonu işlem yapılamaz.");
+  if(!confirm("DİKKAT: "+veri.aktifIsim+" gelmedi olarak işaretlenecek. Emin misin?")) return;
+  const t=trDate(now())+" "+now().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+  veri.gecmis.push({tarih:t,isim:veri.aktifIsim,durum:"Gelmedi",tur:veri.aktifTip});
+  const eski=veri.aktifIsim;
+  if(veri.aktifTip==="normal") {
+    veri.gelmeyenler.push(veri.aktifIsim);
+    veri.currentIndex=(veri.currentIndex+1)%anaListe.length;
+  } else {
+    const yine=veri.gelmeyenler.shift(); if(yine) veri.gelmeyenler.push(yine);
+  }
+  veri.aktifIsim=anaListe[veri.currentIndex]; veri.aktifTip="normal";
+  veri.sonIslemMesaji=eski+" gelmedi. Yeni nöbetçi: "+veri.aktifIsim;
+  nobetRef.set(veri);
+};
+window.tamamlandiIsaretle=function(){
+  if([0,6].includes(now().getDay())) return showToast("Hafta sonu işlem yapılamaz.");
+  if(!confirm("ONAY: "+veri.aktifIsim+" nöbeti tamamladı. Devam edilsin mi?")) return;
+  const t=trDate(now())+" "+now().toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"});
+  veri.gecmis.push({tarih:t,isim:veri.aktifIsim,durum:"Tamamlandı",tur:veri.aktifTip});
+  const eski=veri.aktifIsim;
+  if(veri.aktifTip==="telafi") veri.gelmeyenler.shift();
+  else veri.currentIndex=(veri.currentIndex+1)%anaListe.length;
+  if(veri.gelmeyenler.length) { veri.aktifIsim=veri.gelmeyenler[0]; veri.aktifTip="telafi"; }
+  else { veri.aktifIsim=anaListe[veri.currentIndex]; veri.aktifTip="normal"; }
+  veri.sonIslemMesaji=eski+" tamamladı. Yeni nöbetçi: "+veri.aktifIsim;
+  nobetRef.set(veri);
+};
 
-    let veri = {
-        currentIndex: 0,
-        gelmeyenler: [],
-        gecmis: [],
-        aktifIsim: "SERKAN",
-        aktifTip: "normal",
-        sonIslemMesaji: ""
-    };
-    let ilkYukleme = true;
-
-    // --- DÜZELTİLMİŞ GELECEK 10 GÜN HESAPLAYICISI ---
-    function onGunlukPlanOlustur() {
-        const listeEl = document.getElementById("onGunlukListe");
-        listeEl.innerHTML = "";
-        
-        let sim_currentIndex = veri.currentIndex;
-        let sim_gelmeyenler = veri.gelmeyenler ? [...veri.gelmeyenler] : [];
-        let sim_aktifTip = veri.aktifTip;
-
-        let testTarih = new Date();
-        let sayac = 0;
-
-        while(sayac < 10) {
-            testTarih.setDate(testTarih.getDate() + 1);
-            let gun = testTarih.getDay();
-            if(gun === 0 || gun === 6) continue;
-            
-            // O günkü nöbet tamamlandığında sıranın kime geçeceğinin simülasyonu
-            if (sim_aktifTip === "telafi") {
-                sim_gelmeyenler.shift();
-            } else {
-                sim_currentIndex = (sim_currentIndex + 1) % anaListe.length;
-            }
-
-            let siradakiKisi = "";
-            let telafiMi = false;
-
-            if (sim_gelmeyenler.length > 0) {
-                siradakiKisi = sim_gelmeyenler[0];
-                sim_aktifTip = "telafi";
-                telafiMi = true;
-            } else {
-                siradakiKisi = anaListe[sim_currentIndex];
-                sim_aktifTip = "normal";
-                telafiMi = false;
-            }
-
-            let gunStr = testTarih.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' });
-            let li = document.createElement("li");
-            li.className = "forecast-item" + (telafiMi ? " forecast-telafi" : "");
-            li.innerHTML = `<span>📅 ${gunStr}</span> <b>${siradakiKisi} ${telafiMi ? '<span style="color:#e67e22;font-size:11px;">(Telafi)</span>' : ''}</b>`;
-            listeEl.appendChild(li);
-            
-            sayac++;
-        }
-    }
-
-    function ekraniGuncelle() {
-        document.getElementById("bugunKisi").textContent = veri.aktifIsim;
-        document.getElementById("durumBilgi").innerHTML = (veri.aktifTip === "telafi") ? "⚠️ Önceki nöbetinden kalan hak" : "Normal Sıra";
-
-        // --- ESKİ KUSURSUZ "SONRAKİ KİŞİ" MANTIĞI GERİ GELDİ ---
-        let sonraki = "";
-        if (veri.aktifTip === "normal") {
-            sonraki = (veri.gelmeyenler && veri.gelmeyenler.length > 0) ? veri.gelmeyenler[0] : anaListe[(veri.currentIndex + 1) % anaListe.length];
-        } else {
-            sonraki = (veri.gelmeyenler && veri.gelmeyenler.length > 1) ? veri.gelmeyenler[1] : anaListe[veri.currentIndex];
-        }
-        document.getElementById("sonrakiKisi").textContent = sonraki;
-        // -----------------------------------------------------
-
-        onGunlukPlanOlustur();
-
-        const listeEl = document.getElementById("gecmisListesi");
-        listeEl.innerHTML = "";
-        if(veri.gecmis && veri.gecmis.length > 0) {
-            veri.gecmis.slice(-5).reverse().forEach(item => {
-                let li = document.createElement("li");
-                li.className = "history-item";
-                let renk = item.durum === 'Gelmedi' ? 'color:#d63031; background:#ffeaa7;' : 'color:#00b894; background:#55efc4;';
-                let borderRenk = item.durum === 'Gelmedi' ? '#e74c3c' : '#27ae60';
-                li.style.borderLeftColor = borderRenk;
-                li.innerHTML = `<span>${item.isim} <small>${item.tarih}</small></span> <span class="badge" style="${renk}">${item.durum}</span>`;
-                listeEl.appendChild(li);
-            });
-        }
-    }
-
-    nobetRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            veri = data;
-            if(!veri.gelmeyenler) veri.gelmeyenler = [];
-            if(!veri.gecmis) veri.gecmis = [];
-            
-            if (!ilkYukleme && veri.sonIslemMesaji) { bildirimGonder(veri.sonIslemMesaji); }
-        } else {
-            nobetRef.set(veri);
-        }
-        ekraniGuncelle();
-        saatiGuncelle();
-        ilkYukleme = false;
-    });
-
-    window.gelmediIsaretle = function() {
-        const bugun = new Date().getDay();
-        if(bugun === 0 || bugun === 6) return alert("Hafta sonu işlem yapılamaz!");
-
-        if (!confirm("DİKKAT: " + veri.aktifIsim + " gelmedi olarak işaretlenecek. Emin misin?")) return;
-
-        const tarihSaat = new Date().toLocaleDateString('tr-TR') + " " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
-        veri.gecmis.push({ tarih: tarihSaat, isim: veri.aktifIsim, durum: "Gelmedi" });
-        
-        let eskiIsim = veri.aktifIsim;
-
-        if (veri.aktifTip === "normal") {
-            veri.gelmeyenler.push(veri.aktifIsim); 
-            veri.currentIndex = (veri.currentIndex + 1) % anaListe.length;
-        } else {
-            let yineGelmeyen = veri.gelmeyenler.shift();
-            veri.gelmeyenler.push(yineGelmeyen);
-        }
-
-        veri.aktifIsim = anaListe[veri.currentIndex];
-        veri.aktifTip = "normal";
-        veri.sonIslemMesaji = eskiIsim + " gelmedi. Yeni nöbetçi: " + veri.aktifIsim;
-        nobetRef.set(veri);
-    }
-
-    window.tamamlandiIsaretle = function() {
-        const bugun = new Date().getDay();
-        if(bugun === 0 || bugun === 6) return alert("Hafta sonu işlem yapılamaz!");
-
-        if (!confirm("ONAY: " + veri.aktifIsim + " nöbeti tamamladı. Devam edilsin mi?")) return;
-
-        const tarihSaat = new Date().toLocaleDateString('tr-TR') + " " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
-        veri.gecmis.push({ tarih: tarihSaat, isim: veri.aktifIsim, durum: "Tamamlandı" });
-        
-        let eskiIsim = veri.aktifIsim;
-
-        if (veri.aktifTip === "telafi") {
-            veri.gelmeyenler.shift(); 
-        } else {
-            veri.currentIndex = (veri.currentIndex + 1) % anaListe.length; 
-        }
-        
-        if (veri.gelmeyenler.length > 0) {
-            veri.aktifIsim = veri.gelmeyenler[0];
-            veri.aktifTip = "telafi";
-        } else {
-            veri.aktifIsim = anaListe[veri.currentIndex];
-            veri.aktifTip = "normal";
-        }
-        
-        veri.sonIslemMesaji = eskiIsim + " tamamladı. Yeni nöbetçi: " + veri.aktifIsim;
-        nobetRef.set(veri);
-    }
-
-    window.gecmisiTemizle = function() {
-        let sifre = prompt("Geçmişi temizlemek için şifreyi girin:");
-        if (sifre === null) return;
-        if (sifre !== "1905") {
-            alert("Hatalı şifre! Temizleme işlemi iptal edildi.");
-            return;
-        }
-        if (confirm("Geçmiş liste tamamen silinecek. Onaylıyor musun?")) {
-            veri.gecmis = [];
-            nobetRef.set(veri);
-            alert("Geçmiş başarıyla temizlendi!");
-        }
-    }
+// Yatay widget/page navigasyonu
+const slider=document.getElementById("slider"), dots=[...document.querySelectorAll(".dot-nav")];
+slider.addEventListener("scroll",()=>{
+  const i=Math.round(slider.scrollLeft/slider.clientWidth);
+  dots.forEach((d,k)=>d.classList.toggle("active",k===i));
+},{passive:true});
 </script>
-
 </body>
 </html>
