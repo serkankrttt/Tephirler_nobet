@@ -7,8 +7,10 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; color: #333; }
         .container { max-width: 500px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #2c3e50; font-size: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h1 { text-align: center; color: #2c3e50; font-size: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 10px; }
         h2 { text-align: center; color: #7f8c8d; font-size: 16px; margin: -5px 0 15px 0; }
+        .saat-kapsayici { text-align: center; margin-bottom: 20px; }
+        .canli-saat { background: #e8f4f8; color: #2980b9; padding: 6px 15px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-block; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
         .box { background: #34495e; color: #fff; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 15px; }
         .nobetci-isim { font-size: 32px; font-weight: bold; color: #f1c40f; display: block; margin: 10px 0; }
         .next-box { background: #ecf0f1; padding: 10px; border-radius: 8px; border: 2px dashed #95a5a6; text-align: center; font-size: 14px; margin-bottom: 20px; }
@@ -20,7 +22,7 @@
         .badge { padding: 4px 8px; border-radius: 5px; font-size: 12px; font-weight: bold; }
     </style>
     
-    <!-- Firebase Klasik Bağlantı Kütüphaneleri (Spck Editor Uyumlu) -->
+    <!-- Firebase Klasik Bağlantı Kütüphaneleri -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
@@ -29,6 +31,11 @@
 <div class="container">
     <h1>ANKARA ŞEKER FABRİKASI</h1>
     <h2>HAMFABRİKA TEPHİRLER NÖBET LİSTESİ</h2>
+
+    <!-- Canlı Saat Alanı -->
+    <div class="saat-kapsayici">
+        <span id="saatTarih" class="canli-saat">Saat yükleniyor...</span>
+    </div>
 
     <div class="box">
         <div style="font-size: 14px; opacity: 0.8;">Şu Anki Nöbetçi:</div>
@@ -48,7 +55,16 @@
 </div>
 
 <script>
-    // 1. Firebase Ayarları
+    // --- Canlı Saat Fonksiyonu ---
+    function saatiGuncelle() {
+        const simdi = new Date();
+        const ayarlar = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long', hour: '2-digit', minute:'2-digit', second:'2-digit' };
+        document.getElementById("saatTarih").textContent = simdi.toLocaleDateString('tr-TR', ayarlar);
+    }
+    setInterval(saatiGuncelle, 1000); // Saniyede bir yeniler
+    saatiGuncelle(); // İlk açılışta hemen yazar
+
+    // --- Firebase Ayarları ---
     const firebaseConfig = {
         apiKey: "AIzaSyCx5Nq4PxLi_STqsUzQkKGLqnriLBkpZeA",
         authDomain: "tephirlernobet.firebaseapp.com",
@@ -59,14 +75,12 @@
         appId: "1:975828220326:web:04e3353e9e002203ccf767"
     };
 
-    // 2. Firebase'i Başlat
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const nobetRef = db.ref('nobetSistemi/guncelData');
 
     const anaListe = ["SERKAN", "TURAN", "MEVLÜT", "OSMAN", "AHMET", "ERTUĞRUL", "SİRAÇ"];
 
-    // Varsayılan Veri
     let veri = {
         currentIndex: 0,
         gelmeyenler: [],
@@ -75,16 +89,14 @@
         aktifTip: "normal"
     };
 
-    // 3. Ekranı Güncelleme
+    // --- Ekranı Güncelleme ---
     function ekraniGuncelle() {
         document.getElementById("bugunKisi").textContent = veri.aktifIsim;
         
-        // Bir sonraki kişiyi doğru hesaplama
         let sonraki = "";
         if (veri.aktifTip === "normal") {
             sonraki = (veri.gelmeyenler && veri.gelmeyenler.length > 0) ? veri.gelmeyenler[0] : anaListe[(veri.currentIndex + 1) % anaListe.length];
         } else {
-            // Eğer şu anki telafi yapan kişiyse, bir sonraki kişi normal listeden sıradaki olur (başka borçlu yoksa)
             sonraki = (veri.gelmeyenler && veri.gelmeyenler.length > 1) ? veri.gelmeyenler[1] : anaListe[veri.currentIndex];
         }
         document.getElementById("sonrakiKisi").textContent = sonraki;
@@ -104,7 +116,6 @@
         }
     }
 
-    // 4. Veritabanını Dinle (Canlı Senkronizasyon)
     nobetRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -112,36 +123,37 @@
             if(!veri.gelmeyenler) veri.gelmeyenler = [];
             if(!veri.gecmis) veri.gecmis = [];
         } else {
-            // İlk kez açılıyorsa veritabanına varsayılanı yaz
             nobetRef.set(veri);
         }
         ekraniGuncelle();
     });
 
-    // 5. GELMEDİ BUTONU
-    function gelmediIsaretle() {
+    // --- GELMEDİ BUTONU (HATA DÜZELTİLDİ) ---
+    window.gelmediIsaretle = function() {
         const tarihSaat = new Date().toLocaleDateString('tr-TR') + " " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
         veri.gecmis.push({ tarih: tarihSaat, isim: veri.aktifIsim, durum: "Gelmedi" });
         
         if (veri.aktifTip === "normal") {
             veri.gelmeyenler.push(veri.aktifIsim); // Borçlulara ekle
+            
+            // SADECE normal sıradaki kişi gelmezse sırayı ilerlet! (Hata buradaydı)
+            veri.currentIndex = (veri.currentIndex + 1) % anaListe.length;
         } else {
             // Telafi sırasındayken de gelmediyse, onu sona atalım tekrar sormasın
             let yineGelmeyen = veri.gelmeyenler.shift();
             veri.gelmeyenler.push(yineGelmeyen);
+            // NOT: Burada currentIndex'i ilerletmiyoruz, çünkü arkada bekleyen normal sıradaki kişiyi atlamak istemiyoruz!
         }
 
-        // Bugünü kurtarmak için ANINDA sıradaki NORMAL kişiye geç!
-        veri.currentIndex = (veri.currentIndex + 1) % anaListe.length;
+        // Bugünü kurtarmak için sıradaki NORMAL kişiye geç
         veri.aktifIsim = anaListe[veri.currentIndex];
         veri.aktifTip = "normal";
         
-        // Veritabanına kaydet
         nobetRef.set(veri);
     }
 
-    // 6. TAMAMLANDI BUTONU
-    function tamamlandiIsaretle() {
+    // --- TAMAMLANDI BUTONU ---
+    window.tamamlandiIsaretle = function() {
         const tarihSaat = new Date().toLocaleDateString('tr-TR') + " " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
         veri.gecmis.push({ tarih: tarihSaat, isim: veri.aktifIsim, durum: "Tamamlandı" });
         
@@ -151,7 +163,6 @@
             veri.currentIndex = (veri.currentIndex + 1) % anaListe.length; // Normal sırayı ilerlet
         }
         
-        // Bir sonraki nöbetçiyi belirle
         if (veri.gelmeyenler.length > 0) {
             veri.aktifIsim = veri.gelmeyenler[0];
             veri.aktifTip = "telafi";
@@ -160,7 +171,6 @@
             veri.aktifTip = "normal";
         }
         
-        // Veritabanına kaydet
         nobetRef.set(veri);
     }
 </script>
