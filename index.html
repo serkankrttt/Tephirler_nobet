@@ -58,7 +58,7 @@
         .btn-tamam { background: #55efc4; color: #00b894; border: 2px solid #00cec9; font-size: 15px;}
         .bildirim-btn { width: 100%; background: #dfe6e9; color: #2d3436; margin-bottom: 20px; border: 1px dashed #b2bec3; box-shadow: none;}
 
-        .section-title { font-size: 15px; font-weight: 800; color: #2c3e50; margin-bottom: 10px; border-bottom: 2px solid #bdc3c7; padding-bottom: 5px;}
+        .section-title { font-size: 15px; font-weight: 800; color: #2c3e50; margin-bottom: 10px; border-bottom: 2px solid #bdc3c7; padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center;}
         
         /* 10 Günlük Liste Tasarımı */
         .forecast-list { list-style: none; padding: 0; margin: 0 0 25px 0; }
@@ -70,6 +70,8 @@
         .history-item { background: #fff; padding: 10px 15px; border-radius: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; border-left: 4px solid #bdc3c7; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
         .history-item small { color: #95a5a6; font-size: 11px; font-weight: 400; display: block; margin-top: 3px;}
         .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase;}
+        
+        .btn-temizle { background: none; border: none; color: #e74c3c; font-size: 12px; cursor: pointer; font-weight: 800; padding: 0; box-shadow: none; flex: none; width: auto;}
     </style>
     
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -107,18 +109,19 @@
         <button class="btn-tamam" onclick="tamamlandiIsaretle()">✅ TAMAMLANDI</button>
     </div>
 
-    <!-- Yeni Eklenti: 10 Günlük Tahmin -->
+    <!-- 10 Günlük Tahmin -->
     <div class="section-title">Gelecek 10 İş Günü Planı</div>
     <ul id="onGunlukListe" class="forecast-list"></ul>
 
-    <div class="section-title">Son İşlemler</div>
+    <!-- Son İşlemler ve Şifreli Temizleme Butonu -->
+    <div class="section-title">
+        <span>Son İşlemler</span>
+        <button class="btn-temizle" onclick="gecmisiTemizle()">🗑️ Temizle</button>
+    </div>
     <ul id="gecmisListesi" class="history-list"></ul>
 </div>
 
 <script>
-    // --- GÜVENLİK ŞİFRESİ ---
-    const FABRIKA_SIFRESI = "0606"; // İşlem yapmak isteyen bu şifreyi girmek zorunda.
-    
     let sabahBildirimiAtildi = false;
 
     // --- Canlı Saat ve Hafta Sonu Kontrolü ---
@@ -140,11 +143,10 @@
             document.getElementById("butonGrubu").style.display = "flex";
             
             // Sabah 08:00 Otomatik Bildirim Tetikleyicisi
-            if (saat === 8 && dakika === 0 && !sabahBildirimiAtildi && veri.aktifIsim !== "SERKAN" /*Veri yüklendiyse*/) {
+            if (saat === 8 && dakika === 0 && !sabahBildirimiAtildi && veri.aktifIsim !== "SERKAN") {
                 bildirimGonder("Günün Nöbetçisi: " + veri.aktifIsim);
                 sabahBildirimiAtildi = true;
             }
-            // Ertesi gün için tetikleyiciyi sıfırla
             if (saat === 8 && dakika > 0) { sabahBildirimiAtildi = false; }
         }
     }
@@ -203,12 +205,10 @@
         let testTarih = new Date();
         let sayac = 0;
 
-        // Bugünü saymıyoruz, tahmini liste "yarından" başlar
         while(sayac < 10) {
             testTarih.setDate(testTarih.getDate() + 1);
             let gun = testTarih.getDay();
             
-            // Hafta sonuysa atla, nöbet yazma
             if(gun === 0 || gun === 6) continue;
             
             let siradakiKisi = "";
@@ -230,7 +230,6 @@
             li.innerHTML = `<span>📅 ${gunStr}</span> <b>${siradakiKisi}</b>`;
             listeEl.appendChild(li);
             
-            // Yarınki nöbetçiyi UI'da ayriyeten göstermek için ilk döngüyü yakalıyoruz
             if (sayac === 0) { document.getElementById("sonrakiKisi").textContent = siradakiKisi; }
             
             sayac++;
@@ -241,10 +240,8 @@
         document.getElementById("bugunKisi").textContent = veri.aktifIsim;
         document.getElementById("durumBilgi").innerHTML = (veri.aktifTip === "telafi") ? "⚠️ Önceki nöbetinden kalan hak" : "Normal Sıra";
 
-        // 10 Günlük Tahmini Çalıştır
         onGunlukPlanOlustur();
 
-        // Geçmiş listesi
         const listeEl = document.getElementById("gecmisListesi");
         listeEl.innerHTML = "";
         if(veri.gecmis && veri.gecmis.length > 0) {
@@ -276,14 +273,9 @@
         ilkYukleme = false;
     });
 
-    // --- GÜVENLİKLİ BUTON İŞLEMLERİ ---
     window.gelmediIsaretle = function() {
-        // Hafta sonu teyidi
         const bugun = new Date().getDay();
         if(bugun === 0 || bugun === 6) return alert("Hafta sonu işlem yapılamaz!");
-
-        let sifre = prompt("İşlem onayı için Fabrika Şifresini girin:");
-        if (sifre !== FABRIKA_SIFRESI) return alert("Hatalı şifre! Yetkiniz reddedildi.");
 
         if (!confirm("DİKKAT: " + veri.aktifIsim + " gelmedi olarak işaretlenecek. Emin misin?")) return;
 
@@ -310,9 +302,6 @@
         const bugun = new Date().getDay();
         if(bugun === 0 || bugun === 6) return alert("Hafta sonu işlem yapılamaz!");
 
-        let sifre = prompt("İşlem onayı için Fabrika Şifresini girin:");
-        if (sifre !== FABRIKA_SIFRESI) return alert("Hatalı şifre! Yetkiniz reddedildi.");
-
         if (!confirm("ONAY: " + veri.aktifIsim + " nöbeti tamamladı. Devam edilsin mi?")) return;
 
         const tarihSaat = new Date().toLocaleDateString('tr-TR') + " " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
@@ -336,6 +325,26 @@
         
         veri.sonIslemMesaji = eskiIsim + " tamamladı. Yeni nöbetçi: " + veri.aktifIsim;
         nobetRef.set(veri);
+    }
+
+    // --- ŞİFRELİ GEÇMİŞİ TEMİZLEME FONKSİYONU ---
+    window.gecmisiTemizle = function() {
+        let sifre = prompt("Geçmişi temizlemek için şifreyi girin:");
+        
+        if (sifre === null) {
+            return; // İptale basıldıysa hiçbir şey yapma
+        }
+        
+        if (sifre !== "1905") {
+            alert("Hatalı şifre! Temizleme işlemi iptal edildi.");
+            return;
+        }
+
+        if (confirm("Geçmiş liste tamamen silinecek. Onaylıyor musun?")) {
+            veri.gecmis = [];
+            nobetRef.set(veri);
+            alert("Geçmiş başarıyla temizlendi!");
+        }
     }
 </script>
 
