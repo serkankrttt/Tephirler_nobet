@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nöbetçi Takip</title>
+    <title>Tephirler Nöbet Sistemi</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
         
@@ -27,9 +27,12 @@
         h1 { text-align: center; color: #1a252f; font-size: 22px; font-weight: 800; margin-bottom: 5px; }
         h2 { text-align: center; color: #3498db; font-size: 14px; font-weight: 600; margin-top: 0; margin-bottom: 20px; letter-spacing: 1px;}
         
-        .saat-kapsayici { text-align: center; margin-bottom: 25px; }
+        .saat-kapsayici { text-align: center; margin-bottom: 20px; }
         .canli-saat { background: #fff; color: #2c3e50; padding: 8px 20px; border-radius: 25px; font-size: 13px; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: inline-block; border: 1px solid #eee;}
         
+        .haftasonu-uyari { display: none; background: #e74c3c; color: white; text-align: center; padding: 10px; border-radius: 10px; font-size: 14px; font-weight: bold; margin-bottom: 15px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
         .box { 
             background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%); 
             color: #fff; 
@@ -38,39 +41,35 @@
             text-align: center; 
             margin-bottom: 15px; 
             box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
-            position: relative;
-            overflow: hidden;
         }
         .nobetci-isim { font-size: 38px; font-weight: 800; color: #f1c40f; display: block; margin: 5px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
         .durum-etiketi { font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 10px; display: inline-block; margin-top: 5px;}
         
-        .next-box { background: #fff; padding: 15px; border-radius: 15px; border-left: 5px solid #e67e22; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; font-size: 15px; margin-bottom: 25px; }
+        .next-box { background: #fff; padding: 15px; border-radius: 15px; border-left: 5px solid #e67e22; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; font-size: 15px; margin-bottom: 20px; }
         .next-box b { color: #e67e22; font-size: 18px; }
 
-        .btn-grup { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-grup { display: flex; gap: 10px; margin-bottom: 25px; }
         button { 
-            flex: 1; 
-            border: none; 
-            padding: 15px 10px; 
-            border-radius: 15px; 
-            cursor: pointer; 
-            font-size: 14px; 
-            font-weight: 800; 
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            font-family: 'Poppins', sans-serif;
+            flex: 1; border: none; padding: 15px 10px; border-radius: 15px; cursor: pointer; 
+            font-size: 14px; font-weight: 800; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); font-family: 'Poppins', sans-serif;
         }
         button:active { transform: scale(0.95); }
         .btn-gelmedi { background: #ffeaa7; color: #d63031; border: 2px solid #ff7675; }
         .btn-tamam { background: #55efc4; color: #00b894; border: 2px solid #00cec9; font-size: 15px;}
-        
-        .bildirim-btn { width: 100%; background: #dfe6e9; color: #2d3436; margin-bottom: 25px; border: 1px dashed #b2bec3; box-shadow: none;}
+        .bildirim-btn { width: 100%; background: #dfe6e9; color: #2d3436; margin-bottom: 20px; border: 1px dashed #b2bec3; box-shadow: none;}
 
-        .history-title { font-size: 15px; font-weight: 800; color: #2c3e50; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+        .section-title { font-size: 15px; font-weight: 800; color: #2c3e50; margin-bottom: 10px; border-bottom: 2px solid #bdc3c7; padding-bottom: 5px;}
+        
+        /* 10 Günlük Liste Tasarımı */
+        .forecast-list { list-style: none; padding: 0; margin: 0 0 25px 0; }
+        .forecast-item { background: #f8f9fa; padding: 10px 15px; border-radius: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; border-left: 4px solid #3498db;}
+        .forecast-item span { color: #7f8c8d; font-size: 12px; }
+        .forecast-telafi { border-left-color: #e67e22; background: #fff3e0; }
+
         .history-list { list-style: none; padding: 0; margin: 0; }
-        .history-item { background: #fff; padding: 12px 15px; border-radius: 12px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; border-left: 4px solid #bdc3c7;}
+        .history-item { background: #fff; padding: 10px 15px; border-radius: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; border-left: 4px solid #bdc3c7; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
         .history-item small { color: #95a5a6; font-size: 11px; font-weight: 400; display: block; margin-top: 3px;}
-        .badge { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase;}
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase;}
     </style>
     
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -86,64 +85,87 @@
         <span id="saatTarih" class="canli-saat">Yükleniyor...</span>
     </div>
 
-    <!-- Bildirim İzin Butonu -->
-    <button class="bildirim-btn" id="bildirimIzinBtn" onclick="bildirimIzinIste()">🔔 Bildirimleri Aç</button>
+    <!-- Hafta Sonu Uyarısı -->
+    <div id="haftaSonuUyari" class="haftasonu-uyari">
+        Sistem Kapalı: Hafta Sonu Nöbet Yoktur.
+    </div>
+
+    <button class="bildirim-btn" id="bildirimIzinBtn" onclick="bildirimIzinIste()">🔔 Bildirimleri Aç (Sabah Uyarıları İçin)</button>
 
     <div class="box">
-        <div style="font-size: 13px; opacity: 0.9; font-weight: 600;">ŞU ANKİ NÖBETÇİ</div>
+        <div style="font-size: 13px; opacity: 0.9; font-weight: 600;">GÜNÜN NÖBETÇİSİ</div>
         <span id="bugunKisi" class="nobetci-isim">...</span>
         <div id="durumBilgi" class="durum-etiketi">Bağlanıyor...</div>
     </div>
 
     <div class="next-box">
-        Sonraki Nöbetçi: <b><span id="sonrakiKisi">...</span></b>
+        Yarınki Nöbetçi: <b><span id="sonrakiKisi">...</span></b>
     </div>
 
-    <div class="btn-grup">
+    <div class="btn-grup" id="butonGrubu">
         <button class="btn-gelmedi" onclick="gelmediIsaretle()">❌ GELMEDİ</button>
         <button class="btn-tamam" onclick="tamamlandiIsaretle()">✅ TAMAMLANDI</button>
     </div>
 
-    <div class="history-title">
-        <span>Geçmiş İşlemler</span>
-    </div>
+    <!-- Yeni Eklenti: 10 Günlük Tahmin -->
+    <div class="section-title">Gelecek 10 İş Günü Planı</div>
+    <ul id="onGunlukListe" class="forecast-list"></ul>
+
+    <div class="section-title">Son İşlemler</div>
     <ul id="gecmisListesi" class="history-list"></ul>
 </div>
 
 <script>
-    // --- Canlı Saat ---
+    // --- GÜVENLİK ŞİFRESİ ---
+    const FABRIKA_SIFRESI = "0606"; // İşlem yapmak isteyen bu şifreyi girmek zorunda.
+    
+    let sabahBildirimiAtildi = false;
+
+    // --- Canlı Saat ve Hafta Sonu Kontrolü ---
     function saatiGuncelle() {
         const simdi = new Date();
         const ayarlar = { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit', second:'2-digit' };
         document.getElementById("saatTarih").textContent = simdi.toLocaleDateString('tr-TR', ayarlar);
+
+        const gun = simdi.getDay();
+        const saat = simdi.getHours();
+        const dakika = simdi.getMinutes();
+
+        // Hafta Sonu Kilidi (0=Pazar, 6=Cumartesi)
+        if (gun === 0 || gun === 6) {
+            document.getElementById("haftaSonuUyari").style.display = "block";
+            document.getElementById("butonGrubu").style.display = "none";
+        } else {
+            document.getElementById("haftaSonuUyari").style.display = "none";
+            document.getElementById("butonGrubu").style.display = "flex";
+            
+            // Sabah 08:00 Otomatik Bildirim Tetikleyicisi
+            if (saat === 8 && dakika === 0 && !sabahBildirimiAtildi && veri.aktifIsim !== "SERKAN" /*Veri yüklendiyse*/) {
+                bildirimGonder("Günün Nöbetçisi: " + veri.aktifIsim);
+                sabahBildirimiAtildi = true;
+            }
+            // Ertesi gün için tetikleyiciyi sıfırla
+            if (saat === 8 && dakika > 0) { sabahBildirimiAtildi = false; }
+        }
     }
     setInterval(saatiGuncelle, 1000);
-    saatiGuncelle();
 
     // --- Bildirim Sistemi ---
     function bildirimIzinIste() {
-        if (!("Notification" in window)) {
-            alert("Tarayıcınız bildirimleri desteklemiyor.");
-            return;
-        }
+        if (!("Notification" in window)) return;
         Notification.requestPermission().then(permission => {
             if (permission === "granted") {
                 document.getElementById("bildirimIzinBtn").style.display = "none";
                 new Notification("Sistem Aktif", { body: "Nöbet bildirimleri başarıyla açıldı!" });
-            } else {
-                alert("Bildirimlere izin vermediğiniz için uyarı alamazsınız.");
             }
         });
     }
-
-    // Sayfa açıldığında izin verilmişse butonu gizle
     if ("Notification" in window && Notification.permission === "granted") {
         document.getElementById("bildirimIzinBtn").style.display = "none";
     }
-
     function bildirimGonder(mesaj) {
         if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("Tephirler Nöbet Değişimi", { body: mesaj });
+            new Notification("Tephirler Nöbet", { body: mesaj });
         }
     }
 
@@ -152,10 +174,7 @@
         apiKey: "AIzaSyCx5Nq4PxLi_STqsUzQkKGLqnriLBkpZeA",
         authDomain: "tephirlernobet.firebaseapp.com",
         databaseURL: "https://tephirlernobet-default-rtdb.firebaseio.com",
-        projectId: "tephirlernobet",
-        storageBucket: "tephirlernobet.firebasestorage.app",
-        messagingSenderId: "975828220326",
-        appId: "1:975828220326:web:04e3353e9e002203ccf767"
+        projectId: "tephirlernobet"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -172,27 +191,64 @@
         aktifTip: "normal",
         sonIslemMesaji: ""
     };
-
     let ilkYukleme = true;
+
+    // --- Gelecek 10 Günü Hesaplama Modülü ---
+    function onGunlukPlanOlustur() {
+        const listeEl = document.getElementById("onGunlukListe");
+        listeEl.innerHTML = "";
+        
+        let sanalIndex = veri.currentIndex;
+        let sanalGelmeyenler = veri.gelmeyenler ? [...veri.gelmeyenler] : [];
+        let testTarih = new Date();
+        let sayac = 0;
+
+        // Bugünü saymıyoruz, tahmini liste "yarından" başlar
+        while(sayac < 10) {
+            testTarih.setDate(testTarih.getDate() + 1);
+            let gun = testTarih.getDay();
+            
+            // Hafta sonuysa atla, nöbet yazma
+            if(gun === 0 || gun === 6) continue;
+            
+            let siradakiKisi = "";
+            let telafiMi = false;
+
+            if(sanalGelmeyenler.length > 0) {
+                siradakiKisi = sanalGelmeyenler[0] + " (Telafi)";
+                sanalGelmeyenler.shift();
+                telafiMi = true;
+            } else {
+                sanalIndex = (sanalIndex + 1) % anaListe.length;
+                siradakiKisi = anaListe[sanalIndex];
+            }
+
+            let gunStr = testTarih.toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short' });
+            
+            let li = document.createElement("li");
+            li.className = "forecast-item" + (telafiMi ? " forecast-telafi" : "");
+            li.innerHTML = `<span>📅 ${gunStr}</span> <b>${siradakiKisi}</b>`;
+            listeEl.appendChild(li);
+            
+            // Yarınki nöbetçiyi UI'da ayriyeten göstermek için ilk döngüyü yakalıyoruz
+            if (sayac === 0) { document.getElementById("sonrakiKisi").textContent = siradakiKisi; }
+            
+            sayac++;
+        }
+    }
 
     function ekraniGuncelle() {
         document.getElementById("bugunKisi").textContent = veri.aktifIsim;
-        
-        let sonraki = "";
-        if (veri.aktifTip === "normal") {
-            sonraki = (veri.gelmeyenler && veri.gelmeyenler.length > 0) ? veri.gelmeyenler[0] : anaListe[(veri.currentIndex + 1) % anaListe.length];
-        } else {
-            sonraki = (veri.gelmeyenler && veri.gelmeyenler.length > 1) ? veri.gelmeyenler[1] : anaListe[veri.currentIndex];
-        }
-        document.getElementById("sonrakiKisi").textContent = sonraki;
-
         document.getElementById("durumBilgi").innerHTML = (veri.aktifTip === "telafi") ? "⚠️ Önceki nöbetinden kalan hak" : "Normal Sıra";
 
+        // 10 Günlük Tahmini Çalıştır
+        onGunlukPlanOlustur();
+
+        // Geçmiş listesi
         const listeEl = document.getElementById("gecmisListesi");
         listeEl.innerHTML = "";
-        
         if(veri.gecmis && veri.gecmis.length > 0) {
-            veri.gecmis.slice(-6).reverse().forEach(item => {
+            veri.gecmis.slice(-5).reverse().forEach(item => {
                 let li = document.createElement("li");
                 li.className = "history-item";
                 let renk = item.durum === 'Gelmedi' ? 'color:#d63031; background:#ffeaa7;' : 'color:#00b894; background:#55efc4;';
@@ -211,18 +267,24 @@
             if(!veri.gelmeyenler) veri.gelmeyenler = [];
             if(!veri.gecmis) veri.gecmis = [];
             
-            // Eğer veritabanında yeni bir işlem mesajı varsa ve ilk yükleme değilse bildirim at
-            if (!ilkYukleme && veri.sonIslemMesaji) {
-                bildirimGonder(veri.sonIslemMesaji);
-            }
+            if (!ilkYukleme && veri.sonIslemMesaji) { bildirimGonder(veri.sonIslemMesaji); }
         } else {
             nobetRef.set(veri);
         }
         ekraniGuncelle();
+        saatiGuncelle();
         ilkYukleme = false;
     });
 
+    // --- GÜVENLİKLİ BUTON İŞLEMLERİ ---
     window.gelmediIsaretle = function() {
+        // Hafta sonu teyidi
+        const bugun = new Date().getDay();
+        if(bugun === 0 || bugun === 6) return alert("Hafta sonu işlem yapılamaz!");
+
+        let sifre = prompt("İşlem onayı için Fabrika Şifresini girin:");
+        if (sifre !== FABRIKA_SIFRESI) return alert("Hatalı şifre! Yetkiniz reddedildi.");
+
         if (!confirm("DİKKAT: " + veri.aktifIsim + " gelmedi olarak işaretlenecek. Emin misin?")) return;
 
         const tarihSaat = new Date().toLocaleDateString('tr-TR') + " " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
@@ -240,12 +302,17 @@
 
         veri.aktifIsim = anaListe[veri.currentIndex];
         veri.aktifTip = "normal";
-        
-        veri.sonIslemMesaji = eskiIsim + " nöbete gelmedi. Yeni nöbetçi: " + veri.aktifIsim;
+        veri.sonIslemMesaji = eskiIsim + " gelmedi. Yeni nöbetçi: " + veri.aktifIsim;
         nobetRef.set(veri);
     }
 
     window.tamamlandiIsaretle = function() {
+        const bugun = new Date().getDay();
+        if(bugun === 0 || bugun === 6) return alert("Hafta sonu işlem yapılamaz!");
+
+        let sifre = prompt("İşlem onayı için Fabrika Şifresini girin:");
+        if (sifre !== FABRIKA_SIFRESI) return alert("Hatalı şifre! Yetkiniz reddedildi.");
+
         if (!confirm("ONAY: " + veri.aktifIsim + " nöbeti tamamladı. Devam edilsin mi?")) return;
 
         const tarihSaat = new Date().toLocaleDateString('tr-TR') + " " + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
@@ -267,7 +334,7 @@
             veri.aktifTip = "normal";
         }
         
-        veri.sonIslemMesaji = eskiIsim + " nöbeti tamamladı. Sıra sende olabilir, yeni nöbetçi: " + veri.aktifIsim;
+        veri.sonIslemMesaji = eskiIsim + " tamamladı. Yeni nöbetçi: " + veri.aktifIsim;
         nobetRef.set(veri);
     }
 </script>
