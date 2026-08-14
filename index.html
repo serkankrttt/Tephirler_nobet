@@ -108,6 +108,7 @@ button{font-family:inherit;border:0;border-radius:14px;padding:12px;cursor:point
         <button class="btn-ok" onclick="tamamlandiIsaretle()">✅ TAMAMLANDI</button>
       </div>
       <button class="mini-btn" id="notifyBtn" onclick="bildirimIzinIste()">🔔 Bildirimleri Aç</button>
+      <button class="mini-btn" style="background:#ffe9e5; color:#c0392b; margin-top:8px" onclick="sistemiSifirla()">🗑️ Tüm Sistemi Sıfırla</button>
     </section>
 
     <!-- 2: İSTATİSTİK -->
@@ -140,7 +141,6 @@ button{font-family:inherit;border:0;border-radius:14px;padding:12px;cursor:point
   </div>
 
   <div class="dots" id="dots">
-    <!-- Sayfa sayısı 3'e düştüğü için noktaları da 3 yaptık -->
     <span class="dot-nav active"></span><span class="dot-nav"></span><span class="dot-nav"></span>
   </div>
   <div class="bottom-hint">← Kaydırarak bölümler arasında geç →</div>
@@ -331,8 +331,11 @@ window.gelmediIsaretle=function(){
   }
   veri.aktifIsim=anaListe[veri.currentIndex]; veri.aktifTip="normal";
   veri.sonIslemMesaji=eski+" gelmedi. Yeni nöbetçi: "+veri.aktifIsim;
+  
   nobetRef.set(veri);
+  ekraniGuncelle(); // Telefondaki gecikmeyi engellemek için ekranı anında günceller.
 };
+
 window.tamamlandiIsaretle=function(){
   if([0,6].includes(now().getDay())) return showToast("Hafta sonu işlem yapılamaz.");
   if(!confirm("ONAY: "+veri.aktifIsim+" nöbeti tamamladı. Devam edilsin mi?")) return;
@@ -344,7 +347,30 @@ window.tamamlandiIsaretle=function(){
   if(veri.gelmeyenler.length) { veri.aktifIsim=veri.gelmeyenler[0]; veri.aktifTip="telafi"; }
   else { veri.aktifIsim=anaListe[veri.currentIndex]; veri.aktifTip="normal"; }
   veri.sonIslemMesaji=eski+" tamamladı. Yeni nöbetçi: "+veri.aktifIsim;
+  
   nobetRef.set(veri);
+  ekraniGuncelle(); // Telefondaki gecikmeyi engellemek için ekranı anında günceller.
+};
+
+window.sistemiSifirla=function(){
+  let sifre = prompt("Sistemi ilk günkü haline getirmek için şifreyi girin:");
+  if (sifre !== "1905") {
+    if (sifre !== null) alert("Hatalı şifre! İşlem iptal edildi.");
+    return;
+  }
+  if (confirm("DİKKAT: Geçmiş, telafi listeleri, her şey silinecek ve sistem Serkan'dan baştan başlayacak. Emin misin?")) {
+    veri = {
+      currentIndex: 0,
+      gelmeyenler: [],
+      gecmis: [],
+      aktifIsim: anaListe[0],
+      aktifTip: "normal",
+      sonIslemMesaji: "Sistem sıfırlandı."
+    };
+    nobetRef.set(veri);
+    ekraniGuncelle();
+    showToast("Sistem başarıyla sıfırlandı!");
+  }
 };
 
 // Yatay widget/page navigasyonu
